@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.expo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Firebase secrets
+firebase-service-account.json
+google-services.json
+GoogleService-Info.plist
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# Drizzle
+apps/api/drizzle/meta/
+
+# Docker
+docker-data/

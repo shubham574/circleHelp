@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-typecheck-test:
+    name: Lint, Typecheck & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_USER: nearhelp
+          POSTGRES_PASSWORD: nearhelp_ci
+          POSTGRES_DB: nearhelp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nearhelp -d nearhelp_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm -r lint
+
+      - name: Type check
+        run: pnpm -r typecheck
+
+      - name: Test
+        run: pnpm -r test
+        env:
+          DATABASE_URL: postgresql://nearhelp:nearhelp_ci@localhost:5432/nearhelp_test
+          JWT_SECRET: ci-test-secret-must-be-at-least-32-chars-long
+          TRACKING_TOKEN_SECRET: ci-test-tracking-secret-at-least-32-chars
+          NODE_ENV: test

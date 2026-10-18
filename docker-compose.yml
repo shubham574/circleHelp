@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: nearhelp-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nearhelp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nearhelp_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-nearhelp}
+    volumes:
+      - nearhelp-pgdata:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nearhelp} -d ${POSTGRES_DB:-nearhelp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  nearhelp-pgdata:
+    driver: local

@@ -1,0 +1,25 @@
+{
+  "name": "nearhelp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NearHelp — Community-based emergency help app",
+  "scripts": {
+    "dev:api": "pnpm --filter @nearhelp/api dev",
+    "dev:admin": "pnpm --filter @nearhelp/admin dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:migrate": "pnpm --filter @nearhelp/api db:migrate",
+    "db:seed": "pnpm --filter @nearhelp/api db:seed",
+    "db:generate": "pnpm --filter @nearhelp/api db:generate",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "clean": "pnpm -r exec -- rm -rf node_modules dist .turbo && rm -rf node_modules"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4"
+}
