@@ -6,6 +6,7 @@ import { authRoutes } from './routes/auth.js';
 import { userRoutes } from './routes/users.js';
 import { deviceRoutes } from './routes/devices.js';
 import { communityRoutes } from './routes/communities.js';
+import { availabilityRoutes } from './routes/availability.js';
 import { initFirebase } from './services/firebase.js';
 import pino from 'pino';
 
@@ -47,6 +48,7 @@ export async function buildApp() {
   await app.register(userRoutes, { prefix: '/users' });
   await app.register(deviceRoutes, { prefix: '/devices' });
   await app.register(communityRoutes, { prefix: '/communities' });
+  await app.register(availabilityRoutes, { prefix: '/availability' });
 
   return app;
 }

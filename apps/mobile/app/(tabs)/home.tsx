@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, Linking, ScrollView } from 'react-native';
 import { useAuthStore } from '../../store/auth-store';
+import { AvailabilityToggle } from '../../components/AvailabilityToggle';
 
 export default function HomeScreen() {
   const { user } = useAuthStore();
@@ -29,6 +30,13 @@ export default function HomeScreen() {
           {user?.phone ? `Linked Phone: ${user.phone}` : 'No phone linked'}
         </Text>
       </View>
+
+      {/* Availability & Background Location Toggle */}
+      <AvailabilityToggle
+        communityId="123e4567-e89b-12d3-a456-426614174000"
+        communityName="Green Valley Society"
+        isApprovedMember={true}
+      />
 
       {/* SOS Button Area (Full implementation in Milestone 6) */}
       <View style={styles.sosCard}>
