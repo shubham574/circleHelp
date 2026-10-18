@@ -9,6 +9,13 @@ import {
 } from '../schemas/index.js';
 
 describe('Zod Schemas validation', () => {
+  it('validates user registration payload', () => {
+    const valid = { displayName: 'John Doe', phone: '+919876543210' };
+    expect(registerSchema.safeParse(valid).success).toBe(true);
+
+    const validNoPhone = { displayName: 'John Doe' };
+    expect(registerSchema.safeParse(validNoPhone).success).toBe(true);
+  });
   it('validates valid incident creation payload', () => {
     const valid = {
       communityId: '123e4567-e89b-12d3-a456-426614174000',
