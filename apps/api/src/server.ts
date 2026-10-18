@@ -2,8 +2,13 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { config } from './config.js';
 import { healthRoutes } from './routes/health.js';
+import { authRoutes } from './routes/auth.js';
+import { userRoutes } from './routes/users.js';
+import { deviceRoutes } from './routes/devices.js';
+import { initFirebase } from './services/firebase.js';
 import pino from 'pino';
 
+// Standalone logger for non-request logs, migrations, and scripts
 export const logger = pino({
   level: config.NODE_ENV === 'test' ? 'silent' : config.LOG_LEVEL,
   transport:
@@ -13,8 +18,20 @@ export const logger = pino({
 });
 
 export async function buildApp() {
+  // Initialize Firebase Admin (mock-capable in non-prod)
+  initFirebase();
+
   const app = Fastify({
-    loggerInstance: logger,
+    logger:
+      config.NODE_ENV === 'test'
+        ? false
+        : {
+            level: config.LOG_LEVEL,
+            transport:
+              config.NODE_ENV === 'development'
+                ? { target: 'pino-pretty', options: { colorize: true } }
+                : undefined,
+          },
   });
 
   // CORS
@@ -25,6 +42,9 @@ export async function buildApp() {
 
   // Routes
   await app.register(healthRoutes, { prefix: '/health' });
+  await app.register(authRoutes, { prefix: '/auth' });
+  await app.register(userRoutes, { prefix: '/users' });
+  await app.register(deviceRoutes, { prefix: '/devices' });
 
   return app;
 }
