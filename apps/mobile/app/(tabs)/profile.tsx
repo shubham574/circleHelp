@@ -72,6 +72,40 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.menuChevron}>›</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuRow}
+          onPress={() =>
+            Alert.alert(
+              'Community Drills',
+              'To trigger a community drill exercise, toggle "Drill Mode" on the SOS button on your Home screen. All responders will see the yellow drill warning banner.'
+            )
+          }
+        >
+          <Text style={styles.menuIcon}>⚠️</Text>
+          <View style={styles.menuTextContainer}>
+            <Text style={styles.menuTitle}>Community Safety Drills</Text>
+            <Text style={styles.menuSubtitle}>Schedule or participate in emergency drills</Text>
+          </View>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuRow}
+          onPress={() =>
+            Alert.alert(
+              'Privacy & Retention',
+              'NearHelp stores NO continuous location history. Your GPS coordinates are transmitted only while you are toggled Available or during an active SOS. Responder coordinates are wiped immediately upon incident resolution, and incident coordinates are deleted after 30 days.'
+            )
+          }
+        >
+          <Text style={styles.menuIcon}>🔒</Text>
+          <View style={styles.menuTextContainer}>
+            <Text style={styles.menuTitle}>Privacy & Data Minimization</Text>
+            <Text style={styles.menuSubtitle}>Zero persistent tracking policy</Text>
+          </View>
+          <Text style={styles.menuChevron}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Logout */}

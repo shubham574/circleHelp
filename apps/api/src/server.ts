@@ -7,7 +7,14 @@ import { userRoutes } from './routes/users.js';
 import { deviceRoutes } from './routes/devices.js';
 import { communityRoutes } from './routes/communities.js';
 import { availabilityRoutes } from './routes/availability.js';
+import { incidentRoutes } from './routes/incidents.js';
+import { contactRoutes } from './routes/contacts.js';
+import { trackingRoutes } from './routes/tracking.js';
+import { reportRoutes } from './routes/reports.js';
+import { strikeRoutes } from './routes/strikes.js';
+import { metricRoutes } from './routes/metrics.js';
 import { initFirebase } from './services/firebase.js';
+import { initSocketServer } from './socket/index.js';
 import pino from 'pino';
 
 // Standalone logger for non-request logs, migrations, and scripts
@@ -49,6 +56,15 @@ export async function buildApp() {
   await app.register(deviceRoutes, { prefix: '/devices' });
   await app.register(communityRoutes, { prefix: '/communities' });
   await app.register(availabilityRoutes, { prefix: '/availability' });
+  await app.register(incidentRoutes, { prefix: '/incidents' });
+  await app.register(contactRoutes, { prefix: '/contacts' });
+  await app.register(trackingRoutes, { prefix: '/tracking' });
+  await app.register(reportRoutes, { prefix: '/reports' });
+  await app.register(strikeRoutes, { prefix: '/strikes' });
+  await app.register(metricRoutes, { prefix: '/metrics' });
+
+  // Initialize Socket.IO attached to Fastify's HTTP server
+  initSocketServer(app.server);
 
   return app;
 }
