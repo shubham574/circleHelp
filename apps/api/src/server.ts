@@ -50,6 +50,16 @@ export async function buildApp() {
   });
 
   // Routes
+  app.get('/', async (_request, reply) => {
+    return reply.send({
+      name: 'NearHelp API',
+      status: 'online',
+      version: '0.1.0',
+      health: '/health',
+      message: 'NearHelp Emergency Help API is running',
+    });
+  });
+
   await app.register(healthRoutes, { prefix: '/health' });
   await app.register(authRoutes, { prefix: '/auth' });
   await app.register(userRoutes, { prefix: '/users' });
