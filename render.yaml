@@ -1,0 +1,61 @@
+services:
+  # ── API (Fastify + Node.js) ─────────────────────────────────────────────────
+  - type: web
+    name: nearhelp-api
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: apps/api
+    buildCommand: cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @nearhelp/shared build && pnpm --filter @nearhelp/api build
+    startCommand: node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PORT
+        value: 10000
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        sync: false          # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true  # Render auto-generates a secure random value
+      - key: TRACKING_TOKEN_SECRET
+        generateValue: true
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false          # Paste your JSON in the dashboard
+      - key: CORS_ORIGIN
+        sync: false          # Set to your Render static site URL
+      - key: LOG_LEVEL
+        value: info
+      - key: SOS_RATE_LIMIT_PER_HOUR
+        value: 3
+      - key: API_RATE_LIMIT_PER_MINUTE
+        value: 100
+      - key: SOS_CANCEL_WINDOW_SECONDS
+        value: 5
+      - key: SOS_DEFAULT_RADIUS_METERS
+        value: 1000
+      - key: SOS_EXPAND_RADIUS_METERS
+        value: 2000
+      - key: SOS_EXPAND_DELAY_SECONDS
+        value: 90
+      - key: LOCATION_STALENESS_MINUTES
+        value: 5
+      - key: AVAILABILITY_PURGE_MINUTES
+        value: 30
+      - key: INCIDENT_LOCATION_RETENTION_DAYS
+        value: 30
+
+  # ── Admin Panel (React + Vite — Static Site) ────────────────────────────────
+  - type: web
+    name: nearhelp-admin
+    runtime: static
+    region: singapore
+    plan: free
+    rootDir: apps/admin
+    buildCommand: cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @nearhelp/admin build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false          # Set to https://nearhelp-api.onrender.com
