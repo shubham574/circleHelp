@@ -14,7 +14,7 @@ import {
   check,
 } from 'drizzle-orm/pg-core';
 import { sql, relations } from 'drizzle-orm';
-import { geographyPoint } from './custom-types';
+import { geographyPoint } from './custom-types.js';
 
 // ========================================================
 // ENUMS
