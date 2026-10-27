@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,12 @@ import {
   ActivityIndicator,
   Linking,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/auth-store';
+import { getApiUrl, loadSavedServerUrl, setCustomServerUrl } from '../../lib/api';
+import { disconnectSocket } from '../../lib/socket';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -20,8 +23,53 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [localLoading, setLocalLoading] = useState(false);
 
+  const [serverUrl, setServerUrl] = useState(getApiUrl());
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [serverInput, setServerInput] = useState(getApiUrl());
+  const [serverTesting, setServerTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  useEffect(() => {
+    loadSavedServerUrl().then((url) => {
+      setServerUrl(url);
+      setServerInput(url);
+    });
+  }, []);
+
   const handleCall112 = () => {
     Linking.openURL('tel:112');
+  };
+
+  const handleOpenServerModal = () => {
+    setServerInput(serverUrl);
+    setTestResult(null);
+    setShowServerModal(true);
+  };
+
+  const handleTestAndSaveServer = async () => {
+    if (!serverInput.trim()) return;
+    setServerTesting(true);
+    setTestResult(null);
+    const candidate = serverInput.trim().replace(/\/+$/, '');
+    try {
+      const res = await fetch(`${candidate}/health`, { method: 'GET' });
+      if (res.ok) {
+        await setCustomServerUrl(candidate);
+        disconnectSocket();
+        setServerUrl(candidate);
+        setTestResult({ ok: true, msg: 'Connected successfully to API server!' });
+        setTimeout(() => setShowServerModal(false), 900);
+      } else {
+        setTestResult({ ok: false, msg: `Server responded with HTTP ${res.status}` });
+      }
+    } catch (e: any) {
+      setTestResult({
+        ok: false,
+        msg: `Connection failed: ${e?.message || 'Server unreachable'}. Check URL or network.`,
+      });
+    } finally {
+      setServerTesting(false);
+    }
   };
 
   const handleLogin = async () => {
@@ -153,9 +201,87 @@ export default function LoginScreen() {
         </View>
       </View>
 
+      {/* Server Config Bar */}
+      <TouchableOpacity style={styles.serverBar} onPress={handleOpenServerModal}>
+        <Text style={styles.serverBarIcon}>🌐</Text>
+        <View style={styles.serverBarTextCol}>
+          <Text style={styles.serverBarLabel}>API Server (Tap to change)</Text>
+          <Text style={styles.serverBarUrl} numberOfLines={1}>
+            {serverUrl}
+          </Text>
+        </View>
+        <Text style={styles.serverBarChangeBtn}>Edit</Text>
+      </TouchableOpacity>
+
       <Text style={styles.disclaimerText}>
         Safety Notice: Helpers are never obliged to respond. Always prioritize personal safety and call 112 first.
       </Text>
+
+      {/* Server Configuration Modal */}
+      <Modal
+        visible={showServerModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowServerModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Configure API Server</Text>
+            <Text style={styles.modalSubtitle}>
+              Connect your mobile app to your Render backend or local server:
+            </Text>
+
+            <TextInput
+              style={styles.modalInput}
+              value={serverInput}
+              onChangeText={setServerInput}
+              placeholder="https://nearhelp-api.onrender.com"
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+            />
+
+            {testResult && (
+              <View
+                style={[
+                  styles.testResultBox,
+                  testResult.ok ? styles.testSuccessBox : styles.testErrorBox,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.testResultText,
+                    testResult.ok ? styles.testSuccessText : styles.testErrorText,
+                  ]}
+                >
+                  {testResult.msg}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowServerModal(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, serverTesting && styles.buttonDisabled]}
+                onPress={handleTestAndSaveServer}
+                disabled={serverTesting}
+              >
+                {serverTesting ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.modalSaveText}>Test & Connect</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -326,7 +452,146 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#9CA3AF',
     textAlign: 'center',
-    marginTop: 24,
+    marginTop: 16,
     paddingHorizontal: 16,
+  },
+  serverBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  serverBarIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  serverBarTextCol: {
+    flex: 1,
+  },
+  serverBarLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  serverBarUrl: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginTop: 2,
+  },
+  serverBarChangeBtn: {
+    backgroundColor: '#F3F4F6',
+    color: '#374151',
+    fontWeight: '700',
+    fontSize: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 22,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 6,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  modalInput: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#111827',
+    marginBottom: 12,
+  },
+  testResultBox: {
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  testSuccessBox: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  testErrorBox: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  testResultText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  testSuccessText: {
+    color: '#065F46',
+  },
+  testErrorText: {
+    color: '#991B1B',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 8,
+  },
+  modalCancelBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+  },
+  modalCancelText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  modalSaveBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#DC2626',
+    minWidth: 110,
+    alignItems: 'center',
+  },
+  modalSaveText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

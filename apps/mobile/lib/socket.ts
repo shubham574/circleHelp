@@ -1,19 +1,13 @@
 import { io } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
-import Constants from 'expo-constants';
-import { getApiAuthToken } from './api';
-
-const SOCKET_URL =
-  Constants.expoConfig?.extra?.apiUrl ||
-  process.env.EXPO_PUBLIC_API_URL ||
-  'http://localhost:3001';
+import { getApiAuthToken, getApiUrl } from './api';
 
 let socket: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socket) {
     const token = getApiAuthToken();
-    socket = io(SOCKET_URL, {
+    socket = io(getApiUrl(), {
       auth: { token },
       autoConnect: false,
       transports: ['websocket', 'polling'],
