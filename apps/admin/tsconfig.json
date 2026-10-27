@@ -8,6 +8,7 @@
     "types": []
   },
   "include": ["src/**/*", "vite-env.d.ts"],
+  "exclude": ["src/**/__tests__/**", "**/*.test.ts", "dist", "node_modules"],
   "references": [
     { "path": "../../packages/shared" }
   ]

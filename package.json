@@ -14,6 +14,7 @@
     "db:seed": "pnpm --filter @nearhelp/api db:seed",
     "db:generate": "pnpm --filter @nearhelp/api db:generate",
     "load-test": "pnpm --filter @nearhelp/api exec tsx ../../scripts/load-test.ts",
+    "build:apk": "pnpm --filter @nearhelp/mobile build:apk",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "clean": "pnpm -r exec -- rm -rf node_modules dist .turbo && rm -rf node_modules"
