@@ -100,9 +100,9 @@ export async function updateUserLocation({
   communityId: string;
   isAvailable: boolean;
   location?: GeoPoint | null;
-}) {
+}): Promise<void> {
   if (isAvailable && location) {
-    return db.execute(sql`
+    await db.execute(sql`
       INSERT INTO availability (user_id, community_id, is_available, location, updated_at)
       VALUES (
         ${userId},
@@ -117,10 +117,11 @@ export async function updateUserLocation({
         location = ST_SetSRID(ST_MakePoint(${location.lng}, ${location.lat}), 4326)::geography,
         updated_at = NOW();
     `);
+    return;
   }
 
   // Toggling OFF or clearing location: set location to NULL
-  return db.execute(sql`
+  await db.execute(sql`
     INSERT INTO availability (user_id, community_id, is_available, location, updated_at)
     VALUES (
       ${userId},
@@ -148,8 +149,8 @@ export async function updateResponderLocation({
   incidentId: string;
   userId: string;
   location: GeoPoint;
-}) {
-  return db.execute(sql`
+}): Promise<void> {
+  await db.execute(sql`
     UPDATE incident_responders
     SET
       location = ST_SetSRID(ST_MakePoint(${location.lng}, ${location.lat}), 4326)::geography,
